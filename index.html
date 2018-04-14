@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    
+    <style>
+      .axis path,
+      .axis line{
+        fill: none;
+        stroke: black;
+        shape-rendering: crispEdges;
+      }
+
+      h2 {
+        text-align: center;
+        color: black;
+      }
+
+      div.hands_buttons {
+        position: absolute;
+        top: 5px;
+        left: 25px;
+      }
+
+      div.hands_buttons div {
+        background-color: rgb(251, 201, 127);
+        padding: 3px;
+        margin: 7px;
+      }
+
+      circle {
+        stroke: black;
+        opacity: 0.7;
+      }
+    </style>
+
+    <script type="text/javascript">
+      function draw(data) {
+        "use strict";
+        var margin = 75,
+            height = 600 - margin,
+            width = 1400 - margin;
+
+        d3.select('body')
+            .append('h2')
+            .text("Baseball Palyers' HR vs height" )
+
+        var svg = d3.select("body")
+                    .append("svg")
+                      .attr("width", width + margin)
+                      .attr("height", height + margin)
+                    .append("g")
+                      .attr("class", "chart");
+
+        d3.select('svg')
+         .selectAll('circle')
+          .data(data.sort(function(a,b) {
+            return b['avg'] - a['avg'];
+          }))
+          .enter()
+          .append('circle');
+
+        // Create a x axis
+
+        var x_max = d3.max(data, function(d) {
+          return d['height'];
+        });
+
+        var x_min = d3.min(data, function(d) {
+          return d['height'];
+        });
+
+        var x_scale = d3.scale.linear()
+                              .domain([x_min - 1, x_max + 1])
+                              .range([margin, width]);
+
+        var x_axis = d3.svg.axis()
+                            .scale(x_scale)
+                            .ticks(15);
+
+        d3.select("svg")
+          .append('g')
+            .attr("class", "x axis")
+            .attr("transform", "translate(0, "+ height +")")
+          .call(x_axis)
+          .append('text')
+            .attr('class', 'x axis_text')
+            .attr('x', '1300')
+            .attr('y', 30)
+            .text('height');
+
+        // Create a y axis
+        var y_max = d3.max(data, function(d) {
+          return d['HR'];
+        });
+  debugger;
+        var y_scale = d3.scale.linear()
+                          .domain([0,y_max])
+                          .range([height, margin]);
+
+        var y_axis = d3.svg.axis()
+                        .scale(y_scale)
+                        .orient("left");
+
+        d3.select("svg")
+          .append("g")
+            .attr("class", "y axis")
+            .attr("transform", "translate("+ margin +", 0)")
+          .call(y_axis)
+          .append("text")
+            .attr("class", "y axis_text")
+            .attr("x", 2)
+            .attr("y", margin)
+            .text("HR");
+
+        // Set colors of circles
+        function fill_circle(d) {
+          if (d['handedness'] == "R") {
+            return 'red';
+          }
+          else if (d['handedness'] == "L") {
+            return 'blue';
+          }
+          else {
+            return 'gray';
+          }
+        }
+
+        // Set radius of circles
+        var avg_max = d3.max(data, function(d){
+          return d['avg'];
+        })
+
+        var radius = d3.scale.sqrt()
+                        .domain([0, avg_max])
+                        .range([0, 8]);
+
+        debugger;
+        function plot(new_data) {
+
+          // Select circles that will show
+          d3.selectAll('circle').remove()
+
+          var circles = svg.selectAll('circle')
+                            .data(new_data)
+
+          circles.enter()
+                  .append('circle')
+                  .attr("cx", function(d) {
+                    var i = Math.random();
+                    if (i <= 0.5) {
+                      return x_scale(d["height"] - 0.5 * Math.random());
+                    }
+                    else {
+                      return x_scale(d["height"] + 0.5 * Math.random())
+                    }
+                  })
+                  .attr("cy", function(d) {
+                    return y_scale(d["HR"]);
+                  })
+                  .attr("r", function(d) {
+                    return radius(d['avg']);
+                  })
+                 .attr("fill", fill_circle);
+        }
+
+        // Filter the data with the handedness
+        var nested = d3.nest()
+                        .key(function(d) {
+                          return d['handedness'];
+                        })
+                        .entries(data);
+
+        function choose(hand) {
+          var new_data = nested.filter(function(d) {
+            return d['key'] === hand;
+          })[0].values;
+          return new_data;
+        }
+
+        var hands = ["Right", "Left", "Both", "All"];
+
+        var buttons = d3.select("body")
+                          .append("div")
+                          .attr("class", "hands_buttons")
+                          .selectAll("div")
+                          .data(hands)
+                          .enter()
+                          .append("div")
+                          .text(function(d) {
+                            return d;
+                          });
+
+        buttons.on("click", function(d) {
+          d3.select(".hands_buttons")
+            .selectAll("div")
+            .transition()
+            .duration(500)
+            .style("color", "black")
+            .style("blackground", "rgb(251, 201, 127)");
+
+          function choosed_data(d){
+            if (d === "All") {
+              return data;
+            }
+            else if (d === "Right") {
+              return choose("R");
+            }
+            else if (d === "Left") {
+              return choose("L");
+            }
+            else {
+              return choose("B");
+            }
+          }
+          ;
+          debugger;
+          d3.select(this)
+            .transition()
+            .duration(500)
+            .style("background", "lightblue")
+            .style("color", "white");
+          plot(choosed_data(d));
+        });
+
+        plot(data)
+
+      }
+    </script>
+  </head>
+<body>
+  <script type="text/javascript">
+  d3.csv("baseball_data.csv", function(d) {
+    d['height'] = +d['height'];
+    d['weight'] = +d['weight'];
+    d['avg'] = +d['avg'];
+    d['HR'] = +d["HR"];
+    d['weight-m'] = + d['weight'] * 0.454;
+    d['height-kg'] = + d['height'] * 0.0254;
+    d['bmi'] = (d['weight-m']/d['height-kg'])/d['height-kg'];
+    return d;
+  }, draw);
+  </script>
+</body>
+</html>

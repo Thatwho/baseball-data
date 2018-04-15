@@ -141,12 +141,41 @@
         var radius = d3.scale.sqrt()
                         .domain([0, avg_max])
                         .range([0, 8]);
+        
+        // Append mean line of HR
+        function mean_line(d) {
+          var mean = d3.mean(d, function(a) {
+            return a['HR'];
+          });
 
-        debugger;
+          var line_data = [{'x': margin, 'y': y_scale(mean)},
+                            {'x': width, 'y': y_scale(mean)}];
+
+          var lineFunction = d3.svg.line()
+                                    .x(function(d) {return d['x'];})
+                                    .y(function(d) {return d['y'];})
+                                    .interpolate('linear');
+
+          var lineGraph = svg.append("path")
+                              .attr("d", lineFunction(line_data))
+                              .attr('class', 'mean line')
+                              .attr("stroke", "blue")
+                              .attr("stroke-width", 2)
+                              .attr("stroke-dasharray", 5.5)
+                              .attr("fill", "none")
+                              
+          var mean_text = svg.append("text")
+                              .attr('class', 'mean text')
+                              .attr('x', margin)
+                              .attr('y', y_scale(mean) - 3)
+                              .text('The mean of HR = ' + mean)
+        }
+
         function plot(new_data) {
 
           // Select circles that will show
           d3.selectAll('circle').remove()
+          d3.selectAll('.mean').remove()
 
           var circles = svg.selectAll('circle')
                             .data(new_data)
@@ -170,42 +199,44 @@
                   })
                  .attr("fill", fill_circle);
 
+          mean_line(new_data)
+
           //Append legend
-        var legend_content = [{'handedness': 'R', 'text': 'used to right hand'},
-                              {'handedness': 'L', 'text': 'used to left hand'},
-                              {'handedness': 'B', 'text': 'used to both hand'}];
+          var legend_content = [{'handedness': 'R', 'text': 'used to right hand'},
+                                {'handedness': 'L', 'text': 'used to left hand'},
+                                {'handedness': 'B', 'text': 'used to both hand'}];
 
-        var legend = svg.append('g')
-                        .attr('class', 'legend')
-                        .attr('transform', 'translate('+ (width - 300) + ', ' + 10 + ')')
-                        .selectAll('g')
-                        .data(legend_content)
-                        .enter()
-                        .append('g');
+          var legend = svg.append('g')
+                          .attr('class', 'legend')
+                          .attr('transform', 'translate('+ (width - 300) + ', ' + 10 + ')')
+                          .selectAll('g')
+                          .data(legend_content)
+                          .enter()
+                          .append('g');
 
-        legend.append('circle')
-              .attr('cy', function(d,i) {
-                return i * 30
-              })
-              .attr('cx', 10)
-              .attr('r', 5)
-              .attr('fill', fill_circle)
+          legend.append('circle')
+                .attr('cy', function(d,i) {
+                  return i * 30
+                })
+                .attr('cx', 10)
+                .attr('r', 5)
+                .attr('fill', fill_circle)
 
-        legend.append('text')
-              .attr('class', 'legend_text')
-              .attr("y",function(d, i) {
-                return i * 30 + 5;
-              })
-              .attr("x", 25)
-              .text(function(d) {
-                return d['text'];
-              });
+          legend.append('text')
+                .attr('class', 'legend_text')
+                .attr("y",function(d, i) {
+                  return i * 30 + 5;
+                })
+                .attr("x", 25)
+                .text(function(d) {
+                  return d['text'];
+                });
 
-        legend.append('text')
-              .attr('class', 'legend_text')
-              .attr('y', 90)
-              .attr('x', 5)
-              .text('radius would be greater with a greater avg')
+          legend.append('text')
+                .attr('class', 'legend_text')
+                .attr('y', 90)
+                .attr('x', 5)
+                .text('radius would be greater with a greater avg')
         }
 
         // Filter the data with the handedness

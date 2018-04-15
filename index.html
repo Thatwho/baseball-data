@@ -66,7 +66,7 @@
           }))
           .enter()
           .append('circle');
-
+          debugger;
         // Create a x axis
 
         var x_max = d3.max(data, function(d) {
@@ -188,13 +188,7 @@
           circles.enter()
                   .append('circle')
                   .attr("cx", function(d) {
-                    var i = Math.random();
-                    if (i <= 0.5) {
-                      return x_scale(d["height"] - 0.5 * Math.random());
-                    }
-                    else {
-                      return x_scale(d["height"] + 0.5 * Math.random())
-                    }
+                    return x_scale(d['height']);
                   })
                   .attr("cy", function(d) {
                     return y_scale(d["HR"]);
@@ -307,18 +301,25 @@
 
         
       }
+
+      function filtter(a) {
+        var i = Math.random();
+        if (i <= 0.5) {
+          return (a - 0.5 * Math.random());
+        }
+        else {
+          return (a + 0.5 * Math.random())
+        }
+      }
     </script>
   </head>
 <body>
   <script type="text/javascript">
   d3.csv("baseball_data.csv", function(d) {
-    d['height'] = +d['height'];
+    d['height'] = filtter( + d['height']);
     d['weight'] = +d['weight'];
     d['avg'] = +d['avg'];
     d['HR'] = +d["HR"];
-    d['weight-m'] = + d['weight'] * 0.454;
-    d['height-kg'] = + d['height'] * 0.0254;
-    d['bmi'] = (d['weight-m']/d['height-kg'])/d['height-kg'];
     return d;
   }, draw);
   </script>

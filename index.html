@@ -163,12 +163,17 @@
                               .attr("stroke-width", 2)
                               .attr("stroke-dasharray", 5.5)
                               .attr("fill", "none")
-                              
-          var mean_text = svg.append("text")
-                              .attr('class', 'mean text')
-                              .attr('x', margin)
-                              .attr('y', y_scale(mean) - 3)
-                              .text('The mean of HR = ' + mean)
+                              .on("mouseover", function(){
+                                svg.append('text')
+                            .attr('class', 'mean meantext')
+                            .attr('x', margin)
+                            .attr('y', y_scale(mean) - 3)
+                            .text('The mean of HR = ' + mean)
+                              })
+                              .on("mouseout", function() {
+                                d3.select('.meantext')
+                                  .remove()
+                              });
         }
 
         function plot(new_data) {

@@ -33,6 +33,12 @@
         stroke: black;
         opacity: 0.7;
       }
+
+      .legend_text {
+        font-size: 18px;
+        font-family: arial;
+        font-style: italic;
+      }
     </style>
 
     <script type="text/javascript">
@@ -94,7 +100,7 @@
         var y_max = d3.max(data, function(d) {
           return d['HR'];
         });
-  debugger;
+
         var y_scale = d3.scale.linear()
                           .domain([0,y_max])
                           .range([height, margin]);
@@ -163,6 +169,43 @@
                     return radius(d['avg']);
                   })
                  .attr("fill", fill_circle);
+
+          //Append legend
+        var legend_content = [{'handedness': 'R', 'text': 'used to right hand'},
+                              {'handedness': 'L', 'text': 'used to left hand'},
+                              {'handedness': 'B', 'text': 'used to both hand'}];
+
+        var legend = svg.append('g')
+                        .attr('class', 'legend')
+                        .attr('transform', 'translate('+ (width - 300) + ', ' + 10 + ')')
+                        .selectAll('g')
+                        .data(legend_content)
+                        .enter()
+                        .append('g');
+
+        legend.append('circle')
+              .attr('cy', function(d,i) {
+                return i * 30
+              })
+              .attr('cx', 10)
+              .attr('r', 5)
+              .attr('fill', fill_circle)
+
+        legend.append('text')
+              .attr('class', 'legend_text')
+              .attr("y",function(d, i) {
+                return i * 30 + 5;
+              })
+              .attr("x", 25)
+              .text(function(d) {
+                return d['text'];
+              });
+
+        legend.append('text')
+              .attr('class', 'legend_text')
+              .attr('y', 90)
+              .attr('x', 5)
+              .text('radius would be greater with a greater avg')
         }
 
         // Filter the data with the handedness
@@ -224,8 +267,9 @@
           plot(choosed_data(d));
         });
 
-        plot(data)
+        plot(data);
 
+        
       }
     </script>
   </head>
